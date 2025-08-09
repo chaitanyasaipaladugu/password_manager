@@ -37,11 +37,39 @@ export default function VerificationPage({
       // Check immediately
       checkVerification();
 
-      // Check every 3 seconds
-      const interval = setInterval(checkVerification, 3000);
+      // Check every 2 seconds (more frequent for better UX)
+      const interval = setInterval(checkVerification, 2000);
 
       return () => clearInterval(interval);
     }
+  }, [verificationChecked, onVerificationComplete]);
+
+  // Also listen for auth state changes to detect verification immediately
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("VerificationPage - Auth state change:", event, session);
+
+      if (
+        (event === "SIGNED_IN" ||
+          event === "TOKEN_REFRESHED" ||
+          event === "USER_UPDATED") &&
+        session?.user
+      ) {
+        if (session.user.email_confirmed_at && !verificationChecked) {
+          // Email is verified, show success and proceed to vault
+          setVerificationChecked(true);
+          setVerificationSuccess(true);
+          // Wait 2 seconds to show success message, then proceed
+          setTimeout(() => {
+            onVerificationComplete(session.user);
+          }, 2000);
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, [verificationChecked, onVerificationComplete]);
 
   const handleResendVerification = async () => {

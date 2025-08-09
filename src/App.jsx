@@ -37,12 +37,48 @@ export default function App() {
   // Check if user is already logged in (session persisted)
   useEffect(() => {
     const checkUser = async () => {
-      // Check for reset password URL parameters first
+      // Check for URL parameters first
       const urlParams = new URLSearchParams(window.location.search);
       const type = urlParams.get("type");
       const accessToken = urlParams.get("access_token");
       const refreshToken = urlParams.get("refresh_token");
 
+      // Handle email confirmation redirect
+      if (
+        (type === "email_confirmation" || type === "signup") &&
+        accessToken &&
+        refreshToken
+      ) {
+        try {
+          // Set the session with the tokens from URL
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+
+          if (error) {
+            console.error("Error setting session:", error);
+            // Clear URL parameters anyway
+            window.history.replaceState({}, "", "/login");
+            return;
+          }
+
+          // Clear URL parameters
+          window.history.replaceState({}, "", "/");
+
+          // The auth state change listener will handle the rest
+          return;
+        } catch (error) {
+          console.error(
+            "Error setting session from email confirmation:",
+            error
+          );
+          // Clear URL parameters and go to login
+          window.history.replaceState({}, "", "/login");
+        }
+      }
+
+      // Handle password recovery
       if (type === "recovery" && accessToken && refreshToken) {
         // Don't auto-login if this is a password reset
         setUser(null);
@@ -119,10 +155,20 @@ export default function App() {
         setVerificationEmail("");
         window.history.pushState({}, "", "/");
       } else if (event === "USER_UPDATED" && session?.user) {
-        // Handle email verification
+        // Handle email verification update
         const verified = session.user.email_confirmed_at !== null;
         setIsEmailVerified(verified);
-        if (verified && user) {
+        setUser(session.user);
+        if (verified) {
+          setCurrentPage("vault");
+          window.history.pushState({}, "", "/vault");
+        }
+      } else if (event === "TOKEN_REFRESHED" && session?.user) {
+        // Handle token refresh (which can happen after email verification)
+        const verified = session.user.email_confirmed_at !== null;
+        setIsEmailVerified(verified);
+        setUser(session.user);
+        if (verified && currentPage !== "vault") {
           setCurrentPage("vault");
           window.history.pushState({}, "", "/vault");
         }
@@ -130,7 +176,7 @@ export default function App() {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [currentPage, isPasswordRecovery]);
 
   // Fetch passwords once authenticated and verified
   useEffect(() => {

@@ -139,7 +139,7 @@ export default function Login({ onLogin, onSwitchToSignup }) {
       // Clear URL parameters immediately
       window.history.replaceState({}, "", "/login");
     }
-  });
+  }, [showResetForm]);
 
   return (
     <div className="auth-page">
