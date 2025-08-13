@@ -1,70 +1,232 @@
-# Getting Started with Create React App
+# 🔐 PasswordLock - Secure Password Manager
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A modern, secure password manager built with React and Supabase that helps you store, manage, and generate strong passwords with client-side encryption.
 
-## Available Scripts
+## ✨ Features
 
-In the project directory, you can run:
+- **🔒 Secure Storage**: Passwords are encrypted using AES encryption before being stored in the database
+- **🔑 Password Generation**: Built-in secure password generator with customizable complexity
+- **👤 User Authentication**: Complete user registration, login, and email verification system
+- **🔍 Search & Filter**: Quick search through your saved passwords
+- **✏️ CRUD Operations**: Add, edit, delete, and view your password entries
+- **📋 One-Click Copy**: Copy usernames and passwords to clipboard with a single click
+- **👁️ Password Visibility**: Toggle password visibility for easy verification
+- **📱 Responsive Design**: Works seamlessly on desktop and mobile devices
+- **🌐 Modern UI**: Clean, intuitive interface with smooth animations
 
-### `npm start`
+## 🛠️ Tech Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Frontend**: React 19.1.1
+- **State Management**: Redux Toolkit
+- **Backend**: Supabase (PostgreSQL database + Authentication)
+- **Encryption**: CryptoJS (AES encryption)
+- **Styling**: CSS3 with modern features
+- **Build Tool**: Create React App
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🚀 Getting Started
 
-### `npm test`
+### Prerequisites
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- Node.js (v14 or higher)
+- npm or yarn
+- Supabase account
 
-### `npm run build`
+### Installation
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+1. **Clone the repository**
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+   ```bash
+   git clone <repository-url>
+   cd password_manager
+   ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+2. **Install dependencies**
 
-### `npm run eject`
+   ```bash
+   npm install
+   ```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+3. **Set up Supabase**
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+   - Create a new project at [Supabase](https://supabase.com)
+   - Create a `passwords` table with the following structure:
+     ```sql
+     CREATE TABLE passwords (
+       id BIGSERIAL PRIMARY KEY,
+       user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+       sitename TEXT NOT NULL,
+       url TEXT NOT NULL,
+       username TEXT NOT NULL,
+       password TEXT NOT NULL,
+       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+     );
+     ```
+   - Enable Row Level Security (RLS) and create policies for user access
+   - Update `src/supabase/client.js` with your Supabase URL and anon key
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+4. **Start the development server**
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+   ```bash
+   npm start
+   ```
 
-## Learn More
+5. **Open your browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 🔧 Configuration
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Supabase Setup
 
-### Code Splitting
+1. **Database Table Creation**:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+   ```sql
+   -- Create passwords table
+   CREATE TABLE passwords (
+     id BIGSERIAL PRIMARY KEY,
+     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+     sitename TEXT NOT NULL,
+     url TEXT NOT NULL,
+     username TEXT NOT NULL,
+     password TEXT NOT NULL,
+     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+   );
 
-### Analyzing the Bundle Size
+   -- Enable RLS
+   ALTER TABLE passwords ENABLE ROW LEVEL SECURITY;
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+   -- Create policy for users to only access their own passwords
+   CREATE POLICY "Users can view their own passwords" ON passwords
+     FOR ALL USING (auth.uid() = user_id);
+   ```
 
-### Making a Progressive Web App
+2. **Authentication Settings**:
+   - Enable email confirmation in Supabase Auth settings
+   - Configure your site URL for email redirects
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### Environment Variables
 
-### Advanced Configuration
+Update `src/supabase/client.js` with your Supabase credentials:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```javascript
+const supabaseUrl = "YOUR_SUPABASE_URL";
+const supabaseAnonKey = "YOUR_SUPABASE_ANON_KEY";
+```
 
-### Deployment
+## 📋 Usage
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### Getting Started
 
-### `npm run build` fails to minify
+1. **Register**: Create a new account with your email
+2. **Verify Email**: Check your email and click the verification link
+3. **Login**: Access your secure password vault
+4. **Add Passwords**: Use the + button to add new password entries
+5. **Manage**: Edit, delete, or search through your passwords
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### Password Generator
+
+- Click "Generate" when adding/editing a password
+- Creates 16-character passwords with uppercase, lowercase, numbers, and symbols
+- Automatically ensures strong password complexity
+
+### Security Features
+
+- All passwords are encrypted client-side using AES encryption
+- Only encrypted data is stored in the database
+- User authentication handled by Supabase Auth
+- Row-level security ensures users only access their own data
+
+## 🗂️ Project Structure
+
+```
+src/
+├── app/
+│   └── store.js                 # Redux store configuration
+├── components/
+│   ├── PasswordCard.jsx         # Individual password entry display
+│   └── PasswordForm.jsx         # Add/edit password form
+├── features/
+│   └── (unused in current structure)
+├── redux/
+│   └── passwordsSlice.js        # Redux slice for password management
+├── supabase/
+│   └── client.js               # Supabase client configuration
+├── utils/
+│   └── (utility functions)
+├── App.jsx                     # Main application component
+├── Landing.jsx                 # Landing page component
+├── Login.jsx                   # Login component
+├── Signup.jsx                  # Registration component
+├── VerificationPage.jsx        # Email verification component
+├── App.css                     # Main styles
+└── index.js                    # Application entry point
+```
+
+## 🔐 Security Considerations
+
+- **Encryption**: Passwords are encrypted using AES encryption before storage
+- **Master Key**: Currently uses a hardcoded key (update `masterKey` in `passwordsSlice.js` for production)
+- **Authentication**: Secure user authentication via Supabase
+- **Database Security**: Row-level security ensures data isolation
+- **HTTPS**: Always use HTTPS in production
+
+## 🚀 Deployment
+
+### Build for Production
+
+```bash
+npm run build
+```
+
+### Deploy to Vercel, Netlify, or similar
+
+1. Build the project
+2. Deploy the `build` folder
+3. Configure environment variables for production
+4. Ensure Supabase project is configured for production
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+## ⚠️ Important Notes
+
+- **Security**: This is a demo application. For production use, implement additional security measures
+- **Master Key**: Replace the hardcoded encryption key with a user-specific key or key derivation
+- **Backup**: Always backup your password data
+- **Updates**: Keep dependencies updated for security patches
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **Supabase Connection Issues**
+
+   - Verify your Supabase URL and keys in `client.js`
+   - Check if your database table exists and has correct permissions
+
+2. **Email Verification Not Working**
+
+   - Check Supabase Auth settings
+   - Verify site URL configuration
+   - Check spam folder for verification emails
+
+3. **Passwords Not Saving**
+   - Ensure database table has correct schema
+   - Check browser console for errors
+   - Verify user is authenticated
+
+## 📞 Support
+
+For support, create an issue in the repository or contact the development team.
+
+---
+
+**Built with ❤️ using React and Supabase**
