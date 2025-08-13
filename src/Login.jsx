@@ -32,7 +32,8 @@ export default function Login({ onLogin, onSwitchToSignup }) {
     setResetMessage("");
 
     const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-      redirectTo: `${window.location.origin}/login`,
+      // Send users back to the app root and let the app route them
+      redirectTo: `${window.location.origin}/`,
     });
 
     if (error) {
@@ -81,11 +82,17 @@ export default function Login({ onLogin, onSwitchToSignup }) {
   // Check if we're on the reset password page
   React.useEffect(() => {
     const handleResetPassword = async () => {
-      // Check for reset password URL parameters
-      const urlParams = new URLSearchParams(window.location.search);
-      const accessToken = urlParams.get("access_token");
-      const refreshToken = urlParams.get("refresh_token");
-      const type = urlParams.get("type");
+      // Supabase can deliver tokens via search (?access_token=) or hash (#access_token=)
+      const searchParams = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(
+        window.location.hash.replace(/^#/, "")
+      );
+
+      const accessToken =
+        searchParams.get("access_token") || hashParams.get("access_token");
+      const refreshToken =
+        searchParams.get("refresh_token") || hashParams.get("refresh_token");
+      const type = searchParams.get("type") || hashParams.get("type");
 
       if (type === "recovery" && accessToken && refreshToken) {
         try {
@@ -126,17 +133,20 @@ export default function Login({ onLogin, onSwitchToSignup }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Check for reset password URL parameters on every render
+  // Check for reset password URL parameters on every render (hash or search)
   React.useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const type = urlParams.get("type");
-    const accessToken = urlParams.get("access_token");
-    const refreshToken = urlParams.get("refresh_token");
+    const searchParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(
+      window.location.hash.replace(/^#/, "")
+    );
+    const type = searchParams.get("type") || hashParams.get("type");
+    const accessToken =
+      searchParams.get("access_token") || hashParams.get("access_token");
+    const refreshToken =
+      searchParams.get("refresh_token") || hashParams.get("refresh_token");
 
     if (type === "recovery" && accessToken && refreshToken && !showResetForm) {
-      // Force show reset form if we detect recovery parameters
       setShowResetForm(true);
-      // Clear URL parameters immediately
       window.history.replaceState({}, "", "/login");
     }
   }, [showResetForm]);

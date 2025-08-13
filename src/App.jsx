@@ -38,10 +38,15 @@ export default function App() {
   useEffect(() => {
     const checkUser = async () => {
       // Check for URL parameters first
-      const urlParams = new URLSearchParams(window.location.search);
-      const type = urlParams.get("type");
-      const accessToken = urlParams.get("access_token");
-      const refreshToken = urlParams.get("refresh_token");
+      const searchParams = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(
+        window.location.hash.replace(/^#/, "")
+      );
+      const type = searchParams.get("type") || hashParams.get("type");
+      const accessToken =
+        searchParams.get("access_token") || hashParams.get("access_token");
+      const refreshToken =
+        searchParams.get("refresh_token") || hashParams.get("refresh_token");
 
       // Handle email confirmation redirect
       if (
